@@ -1,16 +1,203 @@
 package taskA;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
 public class TaskA {
 
     public static void main(String[] args) {
-
-	System.out.println("Operating Systems Coursework");
-	System.out.println("Name: "); // display your name in here
-	System.out.println("Please enter your commands - cat, cut, sort, uniq, wc or |");
-
-	// read the command from the terminal
-	// read the text file
-	String filePath = "taskA.txt";
-
+		System.out.println("Operating Systems Coursework");
+		System.out.println("Name: Samuel Leach"); // display your name in here
+		System.out.println("Please enter your commands - cat, cut, sort, uniq, wc or |");
+	
+		// reads the command from the terminal and executes it
+		Scanner in = new Scanner(System.in);
+		while (true) {
+			System.out.print(">> ");
+			String[] input = in.nextLine().strip().split("\\|");
+			for (int i = 0; i < input.length; i++) {
+				//System.out.print(input[i]);
+				input[i] = input[i].strip();
+			}
+			String[] command;
+			List<String> output = null;
+			for (int i = 0; i < input.length; i++) {
+				command = input[i].split(" ");
+				output = execute(command, output);
+			}
+			for (String i : output) {
+				System.out.println(i);
+			}
+		}
+    }
+    
+    private static List<String> readFileContent(String path) {
+    	List<String> lines = new ArrayList<>();
+    	try {
+    		File file = new File(path);
+    		Scanner reader = new Scanner(file);
+    		while (reader.hasNextLine()) {
+    			lines.add(reader.nextLine());
+    		}
+    		reader.close();
+    	} catch (FileNotFoundException e) {
+    		System.out.println("file: " + path + " not found");
+    		e.printStackTrace();
+    	}
+    	return lines;
+    }
+    
+    private static List<String> execute(String[] command, List<String> input) {
+    	if (input == null) {
+    		input = readFileContent(command[command.length-1]);
+    	}
+    	if (command[0].equals("cat")) {
+    		//input passed straight to output
+    	} else if (command[0].equals("cut")) {
+    		List<Integer> fields = new ArrayList<Integer>();
+    		String delimiter = null;
+    		String fregex1 = "[0-9]+(-[0-9]+)*";
+    		String fregex2 = "[0-9]+(,[0-9]+)*";
+    		String dregex = "'.+'";
+    		boolean err = false;
+    		for (int i = 0; i < command.length; i++) {
+    			if (command[i].equals("-f")) {
+    				if (command[i+1].matches(fregex1)) {
+    					for (String j : command[i+1].split("-")) {
+    						fields.add(Integer.parseInt(j) - 1);
+    					}
+    				}else if (command[i+1].matches(fregex2)) {
+    					for (String j : command[i+1].split(",")) {
+    						fields.add(Integer.parseInt(j) - 1);
+    					}
+    				} else {
+    					if (!err) {
+    						input = new ArrayList<String>();
+    						err = true;
+    					}
+    		    		input.add("invalid field list: '" + command[i+1] + "'");
+    				}
+    			} else if (command[i].equals("-d")) {
+    				if (command[i+1].matches(dregex)) {
+    					delimiter = command[i+1].substring(1, command[i+1].length()-1);
+    				} else {
+    					if (!err) {
+    						input = new ArrayList<String>();
+    						err = true;
+    					}
+    		    		input.add("invalid delimiter: '" + command[i+1] + "'");
+    				}
+    			}
+    		}
+    		if (!err) {
+    			input = cut(input, fields, delimiter);
+    		}
+    	} else if (command[0].equals("sort")) {
+    		input = sort(input);
+    	} else if (command[0].equals("uniq")) {
+    		input = uniq(input);
+    	} else if (command[0].equals("wc")) {
+    		boolean l = false;
+    		for (String i : command) {
+    			if (i.equals("-l")) {
+    				l = true;
+    			}
+    		}
+    		input = wc(input, l);
+    	} else {
+    		input = new ArrayList<String>();
+    		input.add("command: '" + command[0] + "' not recognised");
+    	}
+    	return input;
+    }
+    
+    private static List<String> cut(List<String> lines, List<Integer> fields, String delimiter) {
+    	if (fields.size() == 0 || fields == null) {
+    		lines = new ArrayList<String>();
+    		lines.add("you must specify a valid list of fields to be displayed");
+    	} else {
+	    	if (delimiter == null) {
+	    		delimiter = ",";
+	    	}
+	    	String[] line;
+	    	String newLine;
+	    	for (int i = 0; i < lines.size(); i++) {
+	    		try {
+	    			line = lines.get(i).split(delimiter);
+	    			newLine = "";
+	    			for (int j : fields) {
+	    				if (j < line.length) {
+		    				if (newLine.equals("")) {
+		    					newLine = line[j];
+		    				} else {
+		    					newLine = String.join(delimiter, newLine, line[j]);
+		    				}
+	    				} else {
+	    					newLine = String.join(delimiter, newLine, "[[ERROR: field index out of bounds]]");
+	    				}
+	    			}
+	    			lines.set(i, newLine);
+	    		} catch (IndexOutOfBoundsException e) {
+	    			lines = new ArrayList<String>();
+	        		lines.add("index out of bounds");
+	    		}
+	    	}
+    	}
+    	return lines;
+    }
+    
+    private static List<String> sort(List<String> lines) {
+    	Collections.sort(lines);
+    	return lines;
+    }
+    
+    private static List<String> uniq(List<String> lines) {
+    	List<String> unique = new ArrayList<String>();
+    	boolean found;
+    	for (String i : lines) {
+    		found = false;
+    		for (String j : unique) {
+    			if (i.equals(j)) {
+    				found = true;
+    				break;
+    			}
+    		}
+    		if (!found) {
+    			unique.add(i);
+    		}
+    	}
+    	return unique;
+    }
+    
+    private static List<String> wc(List<String> lines, boolean l) {
+    	String output;
+    	int newlines = lines.size();
+		output = Integer.toString(newlines);
+    	if (!l) {
+    		int words = 0;
+    		int bytes = 0;
+    		boolean err = false;
+    		for (String i : lines) {
+    			words += i.split(" ").length;
+    			try {
+    				bytes += i.getBytes("UTF-8").length;
+    			} catch (UnsupportedEncodingException e) {
+    				output = e.getMessage();
+    				err = true;
+    				break;
+    			}
+    		}
+    		if (!err) {
+    			output += " " + Integer.toString(words) + " " + Integer.toString(bytes);
+    		}
+    	}
+    	lines = new ArrayList<String>();
+    	lines.add(output);
+    	return lines;
     }
 }
