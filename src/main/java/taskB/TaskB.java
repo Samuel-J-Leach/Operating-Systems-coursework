@@ -1,6 +1,9 @@
 package taskB;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  *
@@ -44,14 +47,24 @@ public class TaskB {
     // Keep track of all processes created
     private static ArrayList<Process> listof_processes;
 
-    public static void createProcesses() {
-	Process proc;
-
-	listof_processes = new ArrayList<>();
-	for (int i = 0; i < alloc.length; i++) {
-	    proc = new Process(alloc[i][0], alloc[i][1], alloc[i][2]);
-	    listof_processes.add(proc);
-	}
+    public static void createProcesses() throws FileNotFoundException {
+		//Process proc;
+	
+		listof_processes = new ArrayList<Process>();
+		/*
+		for (int i = 0; i < alloc.length; i++) {
+		    proc = new Process(alloc[i][0], alloc[i][1], alloc[i][2]);
+		    listof_processes.add(proc);
+		}*/
+    	File file = new File("taskB.csv");
+    	Scanner reader = new Scanner(file);
+    	String[] line;
+    	while (reader.hasNextLine()) {
+    		line = reader.nextLine().split(",");
+    		listof_processes.add(new Process(Integer.parseInt(line[0]),
+    				Integer.parseInt(line[1]), Integer.parseInt(line[2])));
+    	}
+    	reader.close();
     }
 
     /**
@@ -61,30 +74,30 @@ public class TaskB {
      * If it succeeds it will print 'Success'.
      */
     private static void firstFit() {
-
-	MainMemory manager = new MainMemory();
-	manager.insertAtStart(new Block());
-
-	for (Process proc : listof_processes) {
-
-	    if (proc.isAllocating()) {
-		boolean placed = manager.firstFitInsert(proc);
-		// externalFragmentation has not been implemented
-		/*
-		 * if(!placed){ System.out.println("Request " + proc.getReference_number() +
-		 * " failed at allocating " + proc.getArgument() + " bytes." );
-		 * System.out.println("External Fragmentation is " +
-		 * manager.externalFragmentation() + " bytes."); //memory print
-		 * manager.printBlocks(); return; }
-		 */
-	    } else if (proc.isDeallocating()) {
-		manager.deallocateBlock(proc.getArgument());
-	    }
-	}
-
-	System.out.println("Success");
-	// memory print
-	manager.printBlocks();
+		MainMemory manager = new MainMemory();
+		manager.insertAtStart(new Block());
+	
+		for (Process proc : listof_processes) {
+	
+		    if (proc.isAllocating()) {
+				boolean placed = manager.firstFitInsert(proc);
+				// externalFragmentation has not been implemented
+				if(!placed){
+					System.out.println("Request " + proc.getReference_number() +
+							" failed at allocating " + proc.getArgument() + " bytes." );
+					System.out.println("External Fragmentation is " +
+							manager.externalFragmentation() + " bytes."); //memory print
+					manager.printBlocks();
+					return;
+				}
+		    } else if (proc.isDeallocating()) {
+		    	manager.deallocateBlock(proc.getArgument());
+		    }
+		}
+	
+		System.out.println("Success");
+		// memory print
+		manager.printBlocks();
     }
 
     /**
@@ -94,42 +107,44 @@ public class TaskB {
      * If it succeeds it will print 'Success'.
      */
     private static void bestFit() {
-
-	MainMemory manager = new MainMemory();
-	manager.insertAtStart(new Block());
-
-	for (Process proc : listof_processes) {
-
-	    if (proc.isAllocating()) {
-		boolean placed = manager.bestFitInsert(proc);
-		// you should calculate the total bytes of the external fragmentation
-		if (!placed) {
-		    System.out.println("Request " + proc.getReference_number() + " failed at allocating "
-			    + proc.getArgument() + " bytes.");
-		    System.out.println("External Fragmentation is " + manager.externalFragmentation() + " bytes.");
-		    // memory print
-		    manager.printBlocks();
-		    return;
+		MainMemory manager = new MainMemory();
+		manager.insertAtStart(new Block());
+		int previousFail = -1;
+		for (int i = 0; i < listof_processes.size(); i++) {
+			Process proc = listof_processes.get(i);
+		    if (proc.isAllocating()) {
+				boolean placed = manager.bestFitInsert(proc);
+				if (!placed) {
+				    System.out.println("\nRequest " + proc.getReference_number() + " failed at allocating "
+					    + proc.getArgument() + " bytes.");
+				    System.out.println("External Fragmentation is " + manager.externalFragmentation() + " bytes.");
+				    // memory print
+				    manager.printBlocks();
+				    if (previousFail == i) return;
+				    previousFail = i;
+				    i--;
+				    //memory compaction
+					manager.compactBlocks();
+					System.out.println("\n-------After Compaction ------");
+					manager.printBlocks();
+				}
+		    } else if (proc.isDeallocating()) {
+		    	manager.deallocateBlock(proc.getArgument());
+		    }
 		}
-	    } else if (proc.isDeallocating()) {
-		manager.deallocateBlock(proc.getArgument());
-	    }
-	}
-	System.out.println("Success");
-	// memory print
-	manager.printBlocks();
+		System.out.println("\nSuccess: all processes were allocated to memory.");
+		// memory print
+		manager.printBlocks();
     }
 
-    public static void main(String[] args) {
-
-	createProcesses();
-
-	System.out.println("----------First Fit - for demo only, you can remove this part ---------");
-	firstFit();
-
-	System.out.println("----------Best Fit - to be implemented ---------");
-	bestFit();
-
+    public static void main(String[] args) throws FileNotFoundException {
+		createProcesses();
+	
+		//System.out.println("----------First Fit - for demo only, you can remove this part ---------");
+		//firstFit();
+	
+		System.out.println("----------Best Fit ---------");
+		bestFit();
     }
 
 }

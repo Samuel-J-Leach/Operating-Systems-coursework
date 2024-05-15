@@ -12,8 +12,7 @@ public class Process {
     private int argument;
 
     // Default constructor
-    private Process() {
-    }
+    private Process() {}
 
     /**
      *
@@ -26,29 +25,29 @@ public class Process {
      *                         operation)
      */
     public Process(int reference_number, int operation, int argument) {
-	this.reference_number = reference_number;
-	this.operation = operation;
-	this.argument = argument;
+		this.reference_number = reference_number;
+		this.operation = operation;
+		this.argument = argument;
     }
 
     public int getReference_number() {
-	return this.reference_number;
+    	return this.reference_number;
     }
 
     public int getOperation() {
-	return this.operation;
+    	return this.operation;
     }
 
     public int getArgument() {
-	return this.argument;
+    	return this.argument;
     }
 
     public boolean isAllocating() {
-	return getOperation() == 1;
+    	return getOperation() == 1;
     }
 
     public boolean isDeallocating() {
-	return getOperation() == 2;
+    	return getOperation() == 2;
     }
 
 }

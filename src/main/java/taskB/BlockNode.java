@@ -14,8 +14,8 @@ public class BlockNode {
      * Default constructor
      */
     public BlockNode() {
-	next = null;
-	block = null;
+		next = null;
+		block = null;
     }
 
     /**
@@ -25,8 +25,8 @@ public class BlockNode {
      * @param n next node linked to current node
      */
     public BlockNode(Block d, BlockNode n) {
-	this.block = d;
-	this.next = n;
+		this.block = d;
+		this.next = n;
     }
 
     /**
@@ -35,7 +35,7 @@ public class BlockNode {
      * @param n next BlockNode to be linked to
      */
     public void setNext(BlockNode n) {
-	next = n;
+    	next = n;
     }
 
     /**
@@ -44,7 +44,7 @@ public class BlockNode {
      * @param d Block to be set.
      */
     public void setBlock(Block d) {
-	block = d;
+    	block = d;
     }
 
     /**
@@ -53,7 +53,7 @@ public class BlockNode {
      * @return next BlockNode linked to current.
      */
     public BlockNode getNext() {
-	return next;
+    	return next;
     }
 
     /**
@@ -62,7 +62,7 @@ public class BlockNode {
      * @return block to get
      */
     public Block getBlock() {
-	return block;
+    	return block;
     }
 
 }
