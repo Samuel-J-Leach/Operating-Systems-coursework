@@ -33,13 +33,21 @@ public class PageTable {
 	@Override
 	public String toString() {
 		StringBuffer output = new StringBuffer();
-		output.append("#Index,Valid,Physical Page or On Disk");
+		output.append("#Index,Valid,Physical Page or On Disk\n");
 		for (int i = 0; i < this.size; i++) {
-			for (int j = 0; i < 3; j++) {
-				output.append(this.getEntry(i).get(j));
+			for (int j = 0; j < 2; j++) {
+				if (this.getEntry(i).get(j) == -1) {
+					output.append(this.getEntry(i).get(j));
+				} else {
+					output.append(this.getEntry(i).get(j));
+				}
 				output.append(",");
 			}
-			output.append(this.getEntry(i).get(3));
+			if (this.getEntry(i).get(2) == -1) {
+				output.append(this.getEntry(i).get(2));
+			} else {
+				output.append(this.getEntry(i).get(2));
+			}
 			output.append("\n");
 		}
 		return output.toString();

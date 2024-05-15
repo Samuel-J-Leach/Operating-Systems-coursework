@@ -39,9 +39,9 @@ public class TLB {
 	@Override
 	public String toString() {
 		StringBuffer output = new StringBuffer();
-		output.append("#Valid, Tag, Physical Page #, LRU");
+		output.append("#Valid, Tag, Physical Page #, LRU\n");
 		for (int i = 0; i < this.size; i++) {
-			for (int j = 0; i < 3; j++) {
+			for (int j = 0; j < 3; j++) {
 				output.append(this.getEntry(i).get(j));
 				output.append(",");
 			}
