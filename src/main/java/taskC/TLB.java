@@ -17,6 +17,10 @@ public class TLB {
 		this.size = 0;
 	}
 	
+	public int getSize() {
+		return this.size;
+	}
+	
 	public ArrayList<Integer> getEntry(int i) {
 		ArrayList<Integer> entry = new ArrayList<Integer>();
 		if (i < this.size && i >= 0) {
@@ -28,12 +32,46 @@ public class TLB {
 		return entry;
 	}
 	
+	public void evictEntry() {
+		for (int i = 0; i < this.size; i++) {
+			if (this.table.get("LRU").get(i) == 1) {
+				this.table.get("Valid").remove(i);
+				this.table.get("Tag").remove(i);
+				this.table.get("Physical Page #").remove(i);
+				this.table.get("LRU").remove(i);
+				this.size--;
+				break;
+			}
+		}
+	}
+	
+	public void updateAllLRU(int x) {
+		int LRU;
+		for (int i = 0; i < this.size; i++) {
+			LRU = this.table.get("LRU").get(i);
+			if (LRU >= this.table.get("LRU").get(x) && x != i) {
+				this.table.get("LRU").set(i, LRU - 1);
+			}
+		}
+		this.table.get("LRU").set(x, 4);
+	}
+	
 	public void addEntry(ArrayList<Integer> entry) {
+		if (this.size == 4) this.evictEntry();
 		this.table.get("Valid").add(entry.get(0));
 		this.table.get("Tag").add(entry.get(1));
 		this.table.get("Physical Page #").add(entry.get(2));
 		this.table.get("LRU").add(entry.get(3));
 		this.size++;
+	}
+	
+	public void editEntry(int i, ArrayList<Integer> entry) {
+		if (i < this.size && i >= 0) {
+			this.table.get("Valid").set(i, entry.get(0));
+			this.table.get("Tag").set(i, entry.get(1));
+			this.table.get("Physical Page #").set(i, entry.get(2));
+			this.table.get("LRU").set(i, entry.get(3));
+		}
 	}
 	
 	@Override
