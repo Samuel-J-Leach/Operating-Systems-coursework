@@ -158,10 +158,10 @@ public class TaskA {
 		    				if (newLine.equals("")) {
 		    					newLine = line[j];
 		    				} else {
-		    					newLine = String.join(delimiter, newLine, line[j]);
+		    					newLine = String.join(",", newLine, line[j]);
 		    				}
 	    				} else {
-	    					newLine = String.join(delimiter, newLine, "[[ERROR: field index out of bounds]]");
+	    					newLine = String.join(",", newLine, "[[ERROR: field index out of bounds]]");
 	    				}
 	    			}
 	    			lines.set(i, newLine);

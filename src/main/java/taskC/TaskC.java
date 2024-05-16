@@ -95,6 +95,7 @@ public class TaskC {
 			FileWriter writer = new FileWriter(path);
 			writer.write(input);
 			writer.close();
+			System.out.println("\n\n-----output successfully written to " + path + "-----\n\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -102,8 +103,11 @@ public class TaskC {
 
     public static void main(String[] args) throws FileNotFoundException {
     	setUpTables();
+    	System.out.println("#stream of virtual addresses");
     	System.out.println(addresses.toString());
+    	System.out.println("#initial TLB");
     	System.out.print(tlb.toString());
+    	System.out.println("#initial Page table");
     	System.out.print(pageTable.toString());
     	System.out.println("\n\n\n");
     	
