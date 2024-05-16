@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+/**
+ * java implementation of a page table
+ */
 public class PageTable {
 	private Dictionary<String, ArrayList<Integer>> table = new Hashtable<String, ArrayList<Integer>>();
 	int size;

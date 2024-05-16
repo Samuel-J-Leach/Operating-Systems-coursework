@@ -113,7 +113,7 @@ public class MainMemory {
     }
 
     /**
-     * TODO Best fit insert, this method goes through the linked list finding the
+     * Best fit insert, this method goes through the linked list finding the
      * best place it can insert the block into memory.
      * 
      * @param Process proc to insert into memory
@@ -179,7 +179,7 @@ public class MainMemory {
     }
 
     /**
-     * TODO This method gets the external fragmentation of the current memory blocks
+     * This method gets the external fragmentation of the current memory blocks
      * if a block of memory failed to placed.
      * 
      * @return external fragmentation of memory.
@@ -228,36 +228,18 @@ public class MainMemory {
 		    ptr = ptr.getNext();
 		}
     }
-    
+
     /**
-     * This method compacts unused holes in memory into one single block
+     * This method combines all unused holes in memory into one block in memory
      */
-    public void compactBlocks2() {
-    	BlockNode ptr = start;
-    	ArrayList<Process> processes = new ArrayList<Process>();
-    	while (ptr != null) {
-    		if (!ptr.getBlock().available()) {
-    			processes.add(ptr.getBlock().getProcess());
-    		}
-    		ptr = ptr.getNext();
-    	}
-    	this.start = null;
-		this.end = null;
-		this.size = 0;
-		this.insertAtStart(new Block());
-    	for (Process p : processes) {
-    		this.bestFitInsert(p);
-    	}
-    }
-    
     public void compactBlocks() {
     	BlockNode ptr = this.start;
     	BlockNode next;
     	BlockNode prev = null;
     	while (ptr.getNext() != null) {
     		next = ptr.getNext();
-    		if (ptr.getBlock().available()) {
-    			if (next.getBlock().available()) {
+    		if (ptr.getBlock().available()) {// if current block is unallocated
+    			if (next.getBlock().available()) {// if next block is unallocated
     				//join unused holes
     				int ptrStart = ptr.getBlock().getHole().getStart();
     				int ptrEnd = next.getBlock().getHole().getEnd();
@@ -265,7 +247,7 @@ public class MainMemory {
     				ptr.setNext(next.getNext());
     				size--;
     				continue;
-    			} else {
+    			} else {// if next block is allocated
     				//swap positions in memory
     				int nextStart = ptr.getBlock().getHole().getStart();
     				int nextEnd = nextStart + next.getBlock().getSize() - 1;

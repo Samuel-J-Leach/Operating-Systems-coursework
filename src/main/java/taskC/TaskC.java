@@ -125,7 +125,10 @@ public class TaskC {
 	 * @throws FileNotFoundException
 	 */
     public static void main(String[] args) throws FileNotFoundException {
+
     	setUpTables();
+
+    	//prints the data from taskC.txt
     	System.out.println("#stream of virtual addresses");
     	System.out.println(addresses.toString());
     	System.out.println("#initial TLB");
@@ -133,9 +136,9 @@ public class TaskC {
     	System.out.println("#initial Page table");
     	System.out.print(pageTable.toString());
     	System.out.println("\n\n\n");
-    	
+
     	StringBuffer output = new StringBuffer();
-    	
+
     	int vPageNum;
     	ArrayList<Integer> tlbEntry;// translation-lookaside buffer entry
     	ArrayList<Integer> ptEntry;// page table entry
@@ -256,7 +259,7 @@ public class TaskC {
     			}
     		}
     	}
-    	
+
     	System.out.println(output.toString());
     	writeToFile(output.toString(), "taskc-sampleoutput.txt");
     }

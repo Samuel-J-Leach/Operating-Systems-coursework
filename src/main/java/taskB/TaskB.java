@@ -123,7 +123,7 @@ public class TaskB {
 				    if (previousFail == i) return;
 				    previousFail = i;
 				    i--;
-				    //memory compaction
+				    // memory compaction
 					manager.compactBlocks();
 					System.out.println("\n-------After Compaction ------");
 					manager.printBlocks();

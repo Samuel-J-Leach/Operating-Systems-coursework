@@ -4,9 +4,14 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+/**
+ * java implementation of a translation-lookaside buffer
+ */
 public class TLB {
-	
+
+	//holds all of the TLB data
 	private Dictionary<String, ArrayList<Integer>> table = new Hashtable<String, ArrayList<Integer>>();
+
 	private int size;
 	
 	public TLB () {

@@ -12,30 +12,41 @@ public class TaskA {
 
     public static void main(String[] args) {
 		System.out.println("Operating Systems Coursework");
-		System.out.println("Name: Samuel Leach"); // display your name in here
+		System.out.println("Name: Samuel Leach");
 		System.out.println("Please enter your commands - cat, cut, sort, uniq, wc or |");
 	
-		// reads the command from the terminal and executes it
+		// reads the command from the terminal
 		Scanner in = new Scanner(System.in);
 		while (true) {
 			System.out.print(">> ");
+
+			// separates piped commands
 			String[] input = in.nextLine().strip().split("\\|");
 			for (int i = 0; i < input.length; i++) {
-				//System.out.print(input[i]);
 				input[i] = input[i].strip();
 			}
+
 			String[] command;
 			List<String> output = null;
 			for (int i = 0; i < input.length; i++) {
 				command = input[i].split(" ");
+				//executes each command using input piped from the previous command's output
 				output = execute(command, output);
 			}
+
+			//displays final output
 			for (String i : output) {
 				System.out.println(i);
 			}
 		}
     }
     
+    /**
+     * this method reads a file and places each line into a list of strings
+     * 
+     * @param path - file path to be read from
+     * @return string list containing each line of the file
+     */
     private static List<String> readFileContent(String path) {
     	List<String> lines = new ArrayList<>();
     	try {
@@ -51,7 +62,14 @@ public class TaskA {
     	}
     	return lines;
     }
-    
+
+    /**
+     * this method takes a range of field indexes and
+     * returns each field index within that range
+     * 
+     * @param range
+     * @return list of fields to be accessed
+     */
 	private static List<Integer> generateFieldListFromRange(List<Integer> range) {
     	List<Integer> fields = new ArrayList<Integer>();
     	if (range.size() == 1) {
@@ -65,13 +83,19 @@ public class TaskA {
     	}
     	return fields;
     }
-    
+
+	/**
+	 * 
+	 * @param command - command to be executed
+	 * @param input - input piped from previous commands output
+	 * @return output of the command executed
+	 */
     private static List<String> execute(String[] command, List<String> input) {
     	if (input == null) {
     		input = readFileContent(command[command.length-1]);
     	}
     	if (command[0].equals("cat")) {
-    		//input passed straight to output
+    		//do nothing since the input does not need to be altered in any way
     	} else if (command[0].equals("cut")) {
     		List<Integer> fields = new ArrayList<Integer>();
     		String delimiter = null;
@@ -139,6 +163,14 @@ public class TaskA {
     	return input;
     }
     
+    /**
+     * this method outputs specific sections from each line of text in the input
+     * 
+     * @param lines - lines of text to be manipulated
+     * @param fields - list of field indexes
+     * @param delimiter - character that separates fields
+     * @return specified fields of each line from the input
+     */
     private static List<String> cut(List<String> lines, List<Integer> fields, String delimiter) {
     	if (fields.size() == 0 || fields == null) {
     		lines = new ArrayList<String>();
@@ -173,12 +205,24 @@ public class TaskA {
     	}
     	return lines;
     }
-    
+
+    /**
+     * this method sorts each line from the input alphabetically
+     * 
+     * @param lines - lines of text to be manipulated
+     * @return lines of text sorted alphabetically
+     */
     private static List<String> sort(List<String> lines) {
     	Collections.sort(lines);
     	return lines;
     }
-    
+
+    /**
+     * this method removes any repeated lines of text from the input
+     * 
+     * @param lines - lines of text to be manipulated
+     * @return unique lines of text
+     */
     private static List<String> uniq(List<String> lines) {
     	List<String> unique = new ArrayList<String>();
     	boolean found;
@@ -196,7 +240,14 @@ public class TaskA {
     	}
     	return unique;
     }
-    
+
+    /**
+     * this method counts the number of lines 
+     * 
+     * @param lines - lines of text to be analysed
+     * @param l - specifies whether to only show the line count
+     * @return line count, word count, byte count
+     */
     private static List<String> wc(List<String> lines, boolean l) {
     	String output;
     	int newlines = lines.size();
