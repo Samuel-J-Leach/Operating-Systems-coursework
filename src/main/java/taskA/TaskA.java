@@ -52,6 +52,20 @@ public class TaskA {
     	return lines;
     }
     
+	private static List<Integer> generateFieldListFromRange(List<Integer> range) {
+    	List<Integer> fields = new ArrayList<Integer>();
+    	if (range.size() == 1) {
+    		fields = range;
+    	} else if (range.size() == 2 && range.get(0) < range.get(1)) {
+    		for (int i = range.get(0); i <= range.get(1); i++) {
+    			fields.add(i);
+    		}
+    	} else {
+    		fields.add(-1);
+    	}
+    	return fields;
+    }
+    
     private static List<String> execute(String[] command, List<String> input) {
     	if (input == null) {
     		input = readFileContent(command[command.length-1]);
@@ -61,9 +75,10 @@ public class TaskA {
     	} else if (command[0].equals("cut")) {
     		List<Integer> fields = new ArrayList<Integer>();
     		String delimiter = null;
-    		String fregex1 = "[0-9]+(-[0-9]+)*";
-    		String fregex2 = "[0-9]+(,[0-9]+)*";
-    		String dregex = "'.+'";
+    		String fregex1 = "[0-9]+(-[0-9]+){0,1}";
+    		String fregex2 = "[0-9]+(,[0-9]+){0,1}";
+    		String dregex1 = "'.+'";
+    		String dregex2 = "\".+\"";
     		boolean err = false;
     		for (int i = 0; i < command.length; i++) {
     			if (command[i].equals("-f")) {
@@ -71,6 +86,7 @@ public class TaskA {
     					for (String j : command[i+1].split("-")) {
     						fields.add(Integer.parseInt(j) - 1);
     					}
+    					fields = generateFieldListFromRange(fields);
     				}else if (command[i+1].matches(fregex2)) {
     					for (String j : command[i+1].split(",")) {
     						fields.add(Integer.parseInt(j) - 1);
@@ -80,10 +96,17 @@ public class TaskA {
     						input = new ArrayList<String>();
     						err = true;
     					}
-    		    		input.add("invalid field list: '" + command[i+1] + "'");
+    		    		input.add("invalid fields: '" + command[i+1] + "'");
+    				}
+    				if (fields.contains(-1)) {
+    					if (!err) {
+    						input = new ArrayList<String>();
+    						err = true;
+    					}
+    		    		input.add("invalid fields: '" + command[i+1] + "'");
     				}
     			} else if (command[i].equals("-d")) {
-    				if (command[i+1].matches(dregex)) {
+    				if (command[i+1].matches(dregex1) || command[i+1].matches(dregex2)) {
     					delimiter = command[i+1].substring(1, command[i+1].length()-1);
     				} else {
     					if (!err) {
