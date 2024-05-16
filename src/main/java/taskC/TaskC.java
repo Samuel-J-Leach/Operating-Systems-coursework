@@ -7,17 +7,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-/*import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Hashtable;*/
-
 public class TaskC {
 	
-	private static TLB tlb = new TLB();
+	private static TLB tlb = new TLB();// translation-lookaside buffer
 	private static PageTable pageTable = new PageTable();
-	private static ArrayList<String> addresses = new ArrayList<String>();
+	private static ArrayList<String> addresses = new ArrayList<String>();// virtual addresses
 	
+	/**
+	 * takes a string containing integers separated by commas and converts it to a list of integers
+	 * 
+	 * @param strNum - the string containing integers separated by commas
+	 * @return numbers - the list of integers
+	 */
 	public static ArrayList<Integer> splitAndConvertToIntegerList(String strNum) {
 		ArrayList<Integer> numbers = new ArrayList<Integer>();
 		for (String num : strNum.split(",")) {
@@ -26,10 +27,21 @@ public class TaskC {
 		return numbers;
 	}
 	
+	/**
+	 * gets the virtual page number from the virtual address given
+	 * 
+	 * @param address - virtual address to be accessed
+	 * @return virtual page number from the virtual address
+	 */
 	public static int getVirtualPageNumber(String address) {
 		return Integer.parseInt(address.substring(2,3));
 	}
 	
+	/**
+	 * reads the data from taskC.txt and inserts it into the list of addresses, TLB, and Page table
+	 * 
+	 * @throws FileNotFoundException
+	 */
 	public static void setUpTables() throws FileNotFoundException {
     	File file = new File("taskC.txt");
     	Scanner reader = new Scanner(file);
@@ -52,6 +64,7 @@ public class TaskC {
     				tlb.addEntry(splitAndConvertToIntegerList(line.strip()));
     				break;
     			case "pageTable":
+    				//"Disk" is replaced by "-1" to simplify the implementation of the pageTable object
     				pageTable.addEntry(splitAndConvertToIntegerList(line.strip().replaceAll("Disk", "-1")));
     				break;
     			}
@@ -81,13 +94,16 @@ public class TaskC {
 	}
 	
 	/**
+	 * writes text to a file
 	 * 
-	 * @param input
-	 * @param path
+	 * @param input - the string to be written to the file
+	 * @param path - the file path to be written to
 	 */
 	public static void writeToFile(String input, String path) {
 		try {
 			File outputFile = new File(path);
+			//try to create new file
+			//if file already exists then delete it and create a new empty file
 			if (!outputFile.createNewFile()) {
 				outputFile.delete();
 				outputFile.createNewFile();
@@ -101,6 +117,13 @@ public class TaskC {
 		}
 	}
 
+	/**
+	 * main program - handles finding/updating/adding TLB and
+	 * 				  page table entries as virtual addresses are accessed
+	 * 
+	 * @param args
+	 * @throws FileNotFoundException
+	 */
     public static void main(String[] args) throws FileNotFoundException {
     	setUpTables();
     	System.out.println("#stream of virtual addresses");
@@ -114,33 +137,50 @@ public class TaskC {
     	StringBuffer output = new StringBuffer();
     	
     	int vPageNum;
-    	ArrayList<Integer> tlbEntry;
+    	ArrayList<Integer> tlbEntry;// translation-lookaside buffer entry
     	ArrayList<Integer> ptEntry;// page table entry
-    	boolean found;
-    	for (String address : addresses) {// for every address
+    	boolean found;// shows whether the virtual page number was found in the TLB or not
+    	for (String address : addresses) {
     		found = false;
     		vPageNum = getVirtualPageNumber(address);
+
     		TLBloop:
     		for (int i = 0; i < tlb.getSize(); i++) {// search TLB for virtual page number
+
     			tlbEntry = tlb.getEntry(i);
+
     			if (tlbEntry.get(1) == vPageNum) {// if virtual page number found
+
     				found = true;
-    				if (tlbEntry.get(0) == 1) {// if entry is valid
+
+    				if (tlbEntry.get(0) == 1) {// if TLB entry is valid
+
 	    				tlb.updateAllLRU(i);
 	    				output.append(generateOutput(address, "Hit"));
 	    				break TLBloop;
+
     				} else if (tlbEntry.get(0) == 0) {// if entry is invalid
-    					for (int j = 0; j < pageTable.getSize(); j++) {// search pageTable for virtual page number as index
+
+    					// search pageTable for virtual page number
+    					for (int j = 0; j < pageTable.getSize(); j++) {
+
     						ptEntry = pageTable.getEntry(j);
-    						if (ptEntry.get(0) == tlbEntry.get(1)) {// if page table index matches virtual page number
-    							if (ptEntry.get(1) != -1) {// if page in memory
-    								tlbEntry.set(0, 1);
-    								tlbEntry.set(2, ptEntry.get(2));
+
+    						// if virtual page number found in page table
+    						if (ptEntry.get(0) == tlbEntry.get(1)) {
+
+    							if (ptEntry.get(2) != -1) {// if page in memory
+
+    								tlbEntry.set(0, 1);// set to valid
+    								tlbEntry.set(2, ptEntry.get(2));// insert physical page number
     								tlb.editEntry(i, tlbEntry);
     			    				tlb.updateAllLRU(i);
+
     			    				output.append(generateOutput(address, "Miss"));
     			    				break TLBloop;
-    							} else if (ptEntry.get(1) == -1) {// if page on disk
+
+    							} else if (ptEntry.get(2) == -1) {// if page on disk
+
     								int newPageNum;
     								try {
     									newPageNum = pageTable.getNextAvailablePageNumber();
@@ -149,12 +189,14 @@ public class TaskC {
 										System.out.println(e.getMessage());
 										break TLBloop;
 									}
-									ptEntry.set(2, newPageNum);
-    								ptEntry.set(1, 1);
+									ptEntry.set(2, newPageNum);// insert new physical page number
+    								ptEntry.set(1, 1);// set to valid
     								pageTable.editEntry(j, ptEntry);
-    								tlbEntry.set(0, 1);
-    								tlbEntry.set(2, newPageNum);
+    								
+    								tlbEntry.set(0, 1);// set to valid
+    								tlbEntry.set(2, newPageNum);// insert new physical page number
     								tlb.editEntry(i, tlbEntry);
+    								
     								tlb.updateAllLRU(i);
     								output.append(generateOutput(address, "PageFault"));
     			    				break TLBloop;
@@ -164,22 +206,32 @@ public class TaskC {
     				}
     			}
     		}
+
     		if (!found) {// if virtual page number not found
+
     			PTloop:
-    			for (int i = 0; i < pageTable.getSize(); i++) {// search page table index for virtual page number
+    			for (int i = 0; i < pageTable.getSize(); i++) {// search page table for virtual page number
+
     				ptEntry = pageTable.getEntry(i);
-    				if (ptEntry.get(0) == vPageNum) {// if page table index matches with virtual page number
+
+    				if (ptEntry.get(0) == vPageNum) {// if virtual page number found in page table
+
     					tlbEntry = new ArrayList<Integer>();// new TLB entry
     					tlbEntry.add(1);// add valid bit
-    					tlbEntry.add(vPageNum);// add tag
-    					if (ptEntry.get(2) != -1) {
+    					tlbEntry.add(vPageNum);// add tag(virtual page number)
+
+    					if (ptEntry.get(2) != -1) {// if page is in memory
+
     						tlbEntry.add(ptEntry.get(2));// add physical page #
     						tlbEntry.add(1);
     						tlb.addEntry(tlbEntry);
+
 		    				tlb.updateAllLRU(tlb.getSize()-1);
 		    				output.append(generateOutput(address, "Miss"));
 		    				break PTloop;
-    					} else if (ptEntry.get(2) == -1) {
+
+    					} else if (ptEntry.get(2) == -1) {// if page is on disk
+
     						int newPageNum;
 							try {
 								newPageNum = pageTable.getNextAvailablePageNumber();
@@ -191,9 +243,11 @@ public class TaskC {
 							ptEntry.set(2, newPageNum);// set physical page
 							ptEntry.set(1, 1);// set valid bit
 							pageTable.editEntry(i, ptEntry);
+
 							tlbEntry.add(newPageNum);// add physical page #
     						tlbEntry.add(1);// add LRU
 							tlb.addEntry(tlbEntry);
+
 		    				tlb.updateAllLRU(tlb.getSize()-1);
 		    				output.append(generateOutput(address, "PageFault"));
 		    				break PTloop;
