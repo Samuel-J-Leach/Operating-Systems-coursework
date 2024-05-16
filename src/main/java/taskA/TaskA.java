@@ -100,7 +100,7 @@ public class TaskA {
     		List<Integer> fields = new ArrayList<Integer>();
     		String delimiter = null;
     		String fregex1 = "[0-9]+(-[0-9]+){0,1}";
-    		String fregex2 = "[0-9]+(,[0-9]+){0,1}";
+    		String fregex2 = "[0-9]+(,[0-9]+)*";
     		String dregex1 = "'.+'";
     		String dregex2 = "\".+\"";
     		boolean err = false;
