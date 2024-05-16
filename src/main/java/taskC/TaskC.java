@@ -2,6 +2,8 @@ package taskC;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -57,6 +59,46 @@ public class TaskC {
     	}
     	reader.close();
 	}
+	
+	/**
+	 * generates a string to be added to the output file
+	 * 
+	 * @param address - virtual address accessed
+	 * @param result - result of memory access
+	 * @return string containing virtual address accessed, result of the memory access,
+	 * 		   the updated TLB and the updated page table
+	 */
+	public static String generateOutput(String address, String result) {
+		StringBuffer output = new StringBuffer();
+		output.append("# After the memory access " + address + "\n");
+		output.append("#Address, Result (Hit, Miss, PageFault)\n");
+		output.append(address + "," + result + "\n");
+		output.append("#updated TLB\n");
+		output.append(tlb.toString());
+		output.append("#updated Page table\n");
+		output.append(pageTable.toString());
+		return output.toString();
+	}
+	
+	/**
+	 * 
+	 * @param input
+	 * @param path
+	 */
+	public static void writeToFile(String input, String path) {
+		try {
+			File outputFile = new File(path);
+			if (!outputFile.createNewFile()) {
+				outputFile.delete();
+				outputFile.createNewFile();
+			}
+			FileWriter writer = new FileWriter(path);
+			writer.write(input);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
     public static void main(String[] args) throws FileNotFoundException {
     	setUpTables();
@@ -65,40 +107,7 @@ public class TaskC {
     	System.out.print(pageTable.toString());
     	System.out.println("\n\n\n");
     	
-    	/*for each address:
-    	 * 
-    	 * 	get virtual page number from address.
-    	 * 
-    	 * 	search tlb for virtual page number:
-    	 * 
-    	 * 		if virtual page number found:
-    	 * 			if tlb entry valid:
-	     * 				if page in memory:
-	     * 					tlb hit.
-	     * 					update tlb.
-	     * 
-	     * 			else:
-	     * 				search page table for page number using virtual page number as index:
-	     * 					if page number found:
-	     * 						if page in memory:
-	     * 							tlb hit
-	     * 							update tlb.
-	     * 						else if page on disk:
-	     * 							page fault.
-	     * 							update page table.
-	     * 							update tlb
-	     * 
-	     * 		else if virtual page number not found:
-	     * 			search page table:
-	     * 
-	     * 				if new page in memory:
-	     * 					tlb miss.
-	     * 					update tlb(evict tlb entry if necessary.insert new tlb entry for page.).
-	     * 				else if new page on disk:
-	     * 					page fault.
-	     * 					update page table.
-	     * 					update tlb(evict tlb entry if necessary.insert new tlb entry for page.).			
-    	 */
+    	StringBuffer output = new StringBuffer();
     	
     	int vPageNum;
     	ArrayList<Integer> tlbEntry;
@@ -113,14 +122,8 @@ public class TaskC {
     			if (tlbEntry.get(1) == vPageNum) {// if virtual page number found
     				found = true;
     				if (tlbEntry.get(0) == 1) {// if entry is valid
-	    				System.out.println("# After the memory access " + address);
-	    				System.out.println("#Address, Result (Hit, Miss, PageFault)");
-	    				System.out.println(address + ",Hit");
 	    				tlb.updateAllLRU(i);
-	    				System.out.println("#updated TLB");
-	    				System.out.println(tlb.toString());
-	    				System.out.println("#updated Page table");
-	    				System.out.println(pageTable.toString());
+	    				output.append(generateOutput(address, "Hit"));
 	    				break TLBloop;
     				} else if (tlbEntry.get(0) == 0) {// if entry is invalid
     					for (int j = 0; j < pageTable.getSize(); j++) {// search pageTable for virtual page number as index
@@ -130,14 +133,8 @@ public class TaskC {
     								tlbEntry.set(0, 1);
     								tlbEntry.set(2, ptEntry.get(2));
     								tlb.editEntry(i, tlbEntry);
-    								System.out.println("# After the memory access " + address);
-    			    				System.out.println("#Address, Result (Hit, Miss, PageFault)");
-    			    				System.out.println(address + ",Miss");
     			    				tlb.updateAllLRU(i);
-    			    				System.out.println("#updated TLB");
-    			    				System.out.println(tlb.toString());
-    			    				System.out.println("#updated Page table");
-    			    				System.out.println(pageTable.toString());
+    			    				output.append(generateOutput(address, "Miss"));
     			    				break TLBloop;
     							} else if (ptEntry.get(1) == -1) {// if page on disk
     								int newPageNum;
@@ -154,14 +151,8 @@ public class TaskC {
     								tlbEntry.set(0, 1);
     								tlbEntry.set(2, newPageNum);
     								tlb.editEntry(i, tlbEntry);
-    								System.out.println("# After the memory access " + address);
-    			    				System.out.println("#Address, Result (Hit, Miss, PageFault)");
-    			    				System.out.println(address + ",PageFault");
-    			    				tlb.updateAllLRU(i);
-    			    				System.out.println("#updated TLB");
-    			    				System.out.println(tlb.toString());
-    			    				System.out.println("#updated Page table");
-    			    				System.out.println(pageTable.toString());
+    								tlb.updateAllLRU(i);
+    								output.append(generateOutput(address, "PageFault"));
     			    				break TLBloop;
     							}
     						}
@@ -181,14 +172,8 @@ public class TaskC {
     						tlbEntry.add(ptEntry.get(2));// add physical page #
     						tlbEntry.add(1);
     						tlb.addEntry(tlbEntry);
-    						System.out.println("# After the memory access " + address);
-		    				System.out.println("#Address, Result (Hit, Miss, PageFault)");
-		    				System.out.println(address + ",Miss");
 		    				tlb.updateAllLRU(tlb.getSize()-1);
-		    				System.out.println("#updated TLB");
-		    				System.out.println(tlb.toString());
-		    				System.out.println("#updated Page table");
-		    				System.out.println(pageTable.toString());
+		    				output.append(generateOutput(address, "Miss"));
 		    				break PTloop;
     					} else if (ptEntry.get(2) == -1) {
     						int newPageNum;
@@ -205,20 +190,17 @@ public class TaskC {
 							tlbEntry.add(newPageNum);// add physical page #
     						tlbEntry.add(1);// add LRU
 							tlb.addEntry(tlbEntry);
-							System.out.println("# After the memory access " + address);
-		    				System.out.println("#Address, Result (Hit, Miss, PageFault)");
-		    				System.out.println(address + ",PageFault");
 		    				tlb.updateAllLRU(tlb.getSize()-1);
-		    				System.out.println("#updated TLB");
-		    				System.out.println(tlb.toString());
-		    				System.out.println("#updated Page table");
-		    				System.out.println(pageTable.toString());
+		    				output.append(generateOutput(address, "PageFault"));
 		    				break PTloop;
     					}
     				}
     			}
     		}
     	}
+    	
+    	System.out.println(output.toString());
+    	writeToFile(output.toString(), "taskc-sampleoutput.txt");
     }
 
 }
